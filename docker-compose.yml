@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: crud
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  server:
+    build: ./server
+    command: npm run start:dev
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db
+
+  client:
+    build: ./client
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+volumes:
+  db-data:
