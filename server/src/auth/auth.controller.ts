@@ -87,8 +87,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-    console.log(req, " ", req.user);
+  async logout(@Req() req: Request & { user: JwtPayload }, @Res({ passthrough: true }) res: Response) {
     await this.authService.logout(req.user.id);
     res.clearCookie('refreshToken');
     return { ok: true };
@@ -96,7 +95,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard) 
   @Get('profile')
-  getProfile(@Req() req: { user: JwtPayload }) {
+  getProfile(@Req() req: Request & { user: JwtPayload }) {
     return req.user;
   }
 
