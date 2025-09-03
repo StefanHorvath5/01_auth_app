@@ -52,6 +52,10 @@ export class UsersService {
     );
   }
 
+  async updatePassword(id: string, passwordHash: string) {
+    await this.usersRepository.update(id, { passwordHash });
+  }
+
   clearPasswordReset(userId: string) {
     return this.usersRepository.update(
       { id: userId },

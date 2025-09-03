@@ -5,9 +5,11 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from 'src/users/dto/register.dto';
 import { LoginDto } from 'src/users/dto/login.dto';
+import { MailService } from 'src/utils/mail.service';
 
 export interface UserResponse {
   id: string;
@@ -34,6 +36,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
+    private mail: MailService,
   ) {}
 
   async comparePasswords(password: string, hash: string): Promise<boolean> {
@@ -120,5 +123,36 @@ export class AuthService {
 
   async logout(userId: string) {
     await this.usersService.setRefreshTokenHash(userId, null);
+  }
+
+  async requestPasswordReset(email: string, frontendBase: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) return;
+    const token = randomBytes(32).toString('hex');
+    const tokenHash = await bcrypt.hash(token, 12);
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    await this.usersService.setPasswordResetToken(user.id, tokenHash, expires);
+    const resetUrl = `${frontendBase}/reset/${token}?id=${user.id}`;
+    await this.mail.sendPasswordResetEmail(user.email, resetUrl);
+  }
+
+  async resetPassword(userId: string, token: string, newPassword: string) {
+    const user = await this.usersService.findOneById(userId);
+    if (
+      !user ||
+      !user.passwordResetTokenHash ||
+      !user.passwordResetTokenExpires
+    ) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+    if (user.passwordResetTokenExpires < new Date())
+      throw new BadRequestException('Token expired');
+    const valid = await bcrypt.compare(token, user.passwordResetTokenHash);
+    if (!valid) throw new BadRequestException('Invalid token');
+
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+    await this.usersService.updatePassword(user.id, passwordHash);
+    await this.usersService.clearPasswordReset(userId);
   }
 }

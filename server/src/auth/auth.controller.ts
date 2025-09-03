@@ -87,13 +87,16 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@Req() req: Request & { user: JwtPayload }, @Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: Request & { user: JwtPayload },
+    @Res({ passthrough: true }) res: Response,
+  ) {
     await this.authService.logout(req.user.id);
     res.clearCookie('refreshToken');
     return { ok: true };
   }
 
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Req() req: Request & { user: JwtPayload }) {
     return req.user;
@@ -102,5 +105,37 @@ export class AuthController {
   @Get('public')
   findAll() {
     return [{ hi: 'hi' }];
+  }
+
+  @Post('forgot')
+  async forgot(@Body() body: { email: string }) {
+    const base = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+    await this.authService.requestPasswordReset(body.email, base);
+    return { ok: true };
+  }
+
+  @Post('reset')
+  async reset(
+    @Body() body: { userId: string; token: string; newPassword: string },
+  ) {
+    await this.authService.resetPassword(body.userId, body.token, body.newPassword);
+    return { ok: true };
+  }
+
+  // Google OAuth start (frontend typically redirects here)
+  @Get('google')
+  google() {
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID as string,
+      redirect_uri: process.env.GOOGLE_CALLBACK_URL as string,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'online',
+      include_granted_scopes: 'true',
+      prompt: 'consent',
+    });
+    return {
+      url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+    };
   }
 }
