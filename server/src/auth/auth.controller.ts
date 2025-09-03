@@ -5,40 +5,102 @@ import {
   HttpCode,
   HttpStatus,
   Get,
-  Request,
+  Res,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthService, JwtObject } from './auth.service';
+import { Response, Request } from 'express';
+import { AuthService, JwtPayload } from './auth.service';
 import { LoginDto } from 'src/users/dto/login.dto';
 import { RegisterDto } from 'src/users/dto/register.dto';
-import { Public } from './auth.guard';
+import { JwtService } from '@nestjs/jwt/dist/jwt.service';
+import { JwtAuthGuard } from './jwt/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private jwtService: JwtService,
+  ) {}
 
-  @Public()
-  @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: LoginDto) {
-    return this.authService.signIn(signInDto);
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authService.login(body);
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return {
+      accessToken: tokens.accessToken,
+      user: { id: user.id, email: user.email, role: user.role },
+    };
   }
 
-  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('register')
-  register(@Body() registerDto: RegisterDto) {
-    console.log('Registering user:', registerDto);
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, tokens } = await this.authService.register(registerDto);
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return {
+      accessToken: tokens.accessToken,
+      user: { id: user.id, email: user.email, role: user.role },
+    };
   }
 
-  //   @UseGuards(AuthGuard) // not needed since using global auth
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const rt = req.cookies?.['refreshToken'];
+    if (!rt) return { ok: false };
+    try {
+      const decoded: any = this.jwtService.verify(rt, {
+        secret: process.env.JWT_REFRESH_SECRET as string,
+      });
+      const tokens = await this.authService.refreshTokens(decoded.id, rt);
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      return { accessToken: tokens.accessToken };
+    } catch (e) {
+      return { ok: false };
+    }
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+    console.log(req, " ", req.user);
+    await this.authService.logout(req.user.id);
+    res.clearCookie('refreshToken');
+    return { ok: true };
+  }
+
+  @UseGuards(JwtAuthGuard) 
   @Get('profile')
-  getProfile(@Request() req: { user: JwtObject }) {
+  getProfile(@Req() req: { user: JwtPayload }) {
     return req.user;
   }
 
-  @Public()
-  @Get()
+  @Get('public')
   findAll() {
     return [{ hi: 'hi' }];
   }

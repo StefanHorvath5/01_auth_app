@@ -7,19 +7,28 @@ export enum UserRole {
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ nullable: false })
-  password: string;
+  passwordHash!: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.USER,
   })
-  role: UserRole;
+  role!: UserRole;
+
+  @Column({ type: 'text', nullable: true })
+  currentHashedRefreshToken?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  passwordResetTokenHash?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  passwordResetTokenExpires?: Date | null;
 }
