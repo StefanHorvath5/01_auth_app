@@ -16,7 +16,7 @@ import { RegisterDto } from 'src/users/dto/register.dto';
 import { JwtService } from '@nestjs/jwt/dist/jwt.service';
 import { JwtAuthGuard } from './jwt/jwt.guard';
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
   constructor(
     private authService: AuthService,

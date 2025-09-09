@@ -15,7 +15,7 @@ import { Roles } from 'src/auth/roles/roles.decorator';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 
-@Controller('items')
+@Controller('api/items')
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 

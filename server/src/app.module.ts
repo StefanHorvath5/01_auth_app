@@ -21,7 +21,7 @@ import { ItemsModule } from './items/items.module';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../.env',
+      envFilePath: './.env',
     }),
     AuthModule,
     UsersModule,

@@ -22,10 +22,11 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - ./server/.env
 
   client:
     build: ./client
+    env_file: ./client/.env
     volumes:
       - ./client:/app
       - /app/node_modules
