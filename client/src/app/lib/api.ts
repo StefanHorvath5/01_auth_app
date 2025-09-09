@@ -173,3 +173,27 @@ export async function deleteItem(
   if (!res.ok) throw new Error("Failed to delete item");
   return res.json();
 }
+
+export async function requestPasswordReset(email: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Failed to send reset email");
+  return res.json();
+}
+
+export async function resetPassword(
+  userId: string,
+  token: string,
+  newPassword: string
+) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, token, newPassword }),
+  });
+  if (!res.ok) throw new Error("Failed to reset password");
+  return res.json();
+}

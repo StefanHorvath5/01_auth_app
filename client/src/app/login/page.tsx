@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ErrorMessage from "../components/ErrorMessage";
 import { useAuth } from "../lib/AuthProvider";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -45,10 +46,15 @@ export default function LoginPage() {
       />
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded"
+        className="bg-blue-600 text-white px-4 py-2 rounded w-full"
       >
         Login
       </button>
+      <div className="mt-2 text-center">
+        <Link href="/forgot" className="text-blue-600 hover:underline text-sm">
+          Forgot password?
+        </Link>
+      </div>
     </form>
   );
 }
