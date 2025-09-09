@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
-import { useState } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { createItem, updateItem } from "../lib/api";
 import { Item } from "../lib/types";
 import ErrorMessage from "../components/ErrorMessage";
+import { useAuth } from "../lib/AuthProvider";
 
 export default function ItemForm({
   item,
@@ -15,15 +16,26 @@ export default function ItemForm({
   const [title, setTitle] = useState(item?.title || "");
   const [description, setDescription] = useState(item?.description || "");
   const [error, setError] = useState("");
+  const { accessToken, setAccessToken } = useAuth();
+
+  useEffect(() => {
+    setTitle(item?.title || "");
+    setDescription(item?.description || "");
+  }, [item]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     try {
       if (item) {
-        await updateItem(item.id, { title, description });
+        await updateItem(
+          item.id,
+          { title, description },
+          accessToken,
+          setAccessToken
+        );
       } else {
-        await createItem({ title, description });
+        await createItem({ title, description }, accessToken, setAccessToken);
       }
       setTitle("");
       setDescription("");

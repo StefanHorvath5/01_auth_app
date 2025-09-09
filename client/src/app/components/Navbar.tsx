@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useAuth } from "../lib/auth";
+import { useAuth } from "../lib/AuthProvider";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   return (
     <nav className="flex items-center justify-between p-4 bg-gray-100 mb-4">
@@ -16,7 +18,10 @@ export default function Navbar() {
           <>
             <Link href="/profile">Profile</Link>
             <button
-              onClick={logout}
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
               className="bg-red-500 text-white px-2 py-1 rounded"
             >
               Logout

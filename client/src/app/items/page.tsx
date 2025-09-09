@@ -3,7 +3,7 @@ import { useState } from "react";
 import ItemList from "./ItemList";
 import ItemForm from "./ItemForm";
 import { Item } from "../lib/types";
-import { useAuth } from "../lib/auth";
+import { useAuth } from "../lib/AuthProvider";
 
 export default function ItemsPage() {
   const { user } = useAuth();

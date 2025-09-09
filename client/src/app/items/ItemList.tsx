@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { getItems, deleteItem } from "../lib/api";
 import { Item, Roles } from "../lib/types";
 import ErrorMessage from "../components/ErrorMessage";
-import { useAuth } from "../lib/auth";
+import { useAuth } from "../lib/AuthProvider";
 
 export default function ItemList({ onEdit }: { onEdit: (item: Item) => void }) {
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState("");
-  const { user } = useAuth();
+  const { user, accessToken, setAccessToken } = useAuth();
 
   async function fetchItems() {
     try {
@@ -25,7 +25,7 @@ export default function ItemList({ onEdit }: { onEdit: (item: Item) => void }) {
 
   async function handleDelete(id: string) {
     try {
-      await deleteItem(id);
+      await deleteItem(id, accessToken, setAccessToken);
       fetchItems();
     } catch (err: any) {
       setError(err.message);

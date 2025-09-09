@@ -1,29 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "../lib/api";
-import { useAuth } from "../lib/auth";
 import ErrorMessage from "../components/ErrorMessage";
+import { useAuth } from "../lib/AuthProvider";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     try {
-      const res = await login({ email, password });
-      console.log(res);
-      setUser(res.user);
-
+      await login(email, password);
       router.push("/profile");
     } catch (err: any) {
-      console.log(err);
       setError(err.message);
     }
   }

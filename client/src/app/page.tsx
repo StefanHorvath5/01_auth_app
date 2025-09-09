@@ -18,7 +18,7 @@ export default function Home() {
           <Link href="/profile">Profile (protected)</Link>
         </li>
         <li>
-          <Link href="/items">Items CRUD (protected)</Link>
+          <Link href="/items">Items CRUD</Link>
         </li>
       </ul>
     </section>

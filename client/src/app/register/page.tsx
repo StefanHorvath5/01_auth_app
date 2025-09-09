@@ -1,27 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "../lib/api";
-import { useAuth } from "../lib/auth";
 import ErrorMessage from "../components/ErrorMessage";
+import { useAuth } from "../lib/AuthProvider";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { register } = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     try {
-      const res = await register({ email, password });
-      setUser(res.user);
+      await register(email, password);
       router.push("/profile");
     } catch (err: any) {
-      console.log(err)
       setError(err.message);
     }
   }
